@@ -353,6 +353,8 @@
 
   <script src="js/config.js"></script>
 <script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
+
 <script>
 
   async function testConnection() {
@@ -373,6 +375,8 @@
 
         message.textContent =
           "Connected to HAKI Cafe System API.";
+
+        await loadDashboard();
 
       }
 
