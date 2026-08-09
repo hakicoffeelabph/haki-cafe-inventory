@@ -1,5 +1,3 @@
-alert("HAKI DASHBOARD JS LOADED");
-
 /**
  * ==========================================================
  * HAKI CAFE SYSTEM
@@ -7,6 +5,7 @@ alert("HAKI DASHBOARD JS LOADED");
  * ==========================================================
  *
  * Reads:
+ *
  *   - Sales API
  *   - Inventory API
  *   - Menu Costing API
@@ -94,9 +93,9 @@ async function loadDashboard() {
 
   try {
 
-    /*
+    /**
      * ------------------------------------------------------
-     * GET BUSINESS DATE
+     * BUSINESS DATE
      * ------------------------------------------------------
      */
 
@@ -104,9 +103,9 @@ async function loadDashboard() {
       getDashboardBusinessDate();
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * LOAD SALES
+     * SALES
      * ------------------------------------------------------
      */
 
@@ -115,14 +114,13 @@ async function loadDashboard() {
         "sales"
       );
 
-
     const sales =
       salesResult.data || [];
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * LOAD INVENTORY
+     * INVENTORY
      * ------------------------------------------------------
      */
 
@@ -131,35 +129,39 @@ async function loadDashboard() {
         "inventory"
       );
 
-
     const inventory =
       inventoryResult.data || [];
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * LOAD MENU COSTING
+     * MENU COSTING
+     * ------------------------------------------------------
+     *
+     * IMPORTANT:
+     * The API action is menuCosting, not menu.
+     *
      * ------------------------------------------------------
      */
 
     const menuResult =
       await apiRequest(
-        "menu"
+        "menuCosting"
       );
-
 
     const menu =
       menuResult.data || [];
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * FILTER TODAY'S SALES
      * ------------------------------------------------------
      *
-     * The API provides businessDate, which is preferred.
+     * Prefer businessDate supplied by the API.
      *
-     * Fallback converts the raw date using Manila timezone.
+     * Fallback to converting the raw date using
+     * Asia/Manila timezone.
      *
      * ------------------------------------------------------
      */
@@ -190,10 +192,13 @@ async function loadDashboard() {
                 {
                   timeZone:
                     DASHBOARD_TIMEZONE,
+
                   year:
                     "numeric",
+
                   month:
                     "2-digit",
+
                   day:
                     "2-digit"
                 }
@@ -218,9 +223,9 @@ async function loadDashboard() {
       );
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * CALCULATE TODAY'S SALES
+     * TODAY'S SALES
      * ------------------------------------------------------
      */
 
@@ -243,9 +248,9 @@ async function loadDashboard() {
       );
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * CALCULATE ITEMS SOLD
+     * ITEMS SOLD
      * ------------------------------------------------------
      */
 
@@ -268,45 +273,85 @@ async function loadDashboard() {
       );
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * UPDATE DASHBOARD
      * ------------------------------------------------------
      */
 
-    document.getElementById(
-      "today-sales"
-    ).textContent =
-      dashboardCurrency(
-        todaySales
+    const todaySalesElement =
+      document.getElementById(
+        "today-sales"
       );
 
 
-    document.getElementById(
-      "items-sold"
-    ).textContent =
-      itemsSold.toLocaleString(
-        "en-PH"
+    const itemsSoldElement =
+      document.getElementById(
+        "items-sold"
       );
 
 
-    document.getElementById(
-      "inventory-items"
-    ).textContent =
-      inventory.length.toLocaleString(
-        "en-PH"
+    const inventoryItemsElement =
+      document.getElementById(
+        "inventory-items"
       );
 
 
-    document.getElementById(
-      "menu-items"
-    ).textContent =
-      menu.length.toLocaleString(
-        "en-PH"
+    const menuItemsElement =
+      document.getElementById(
+        "menu-items"
       );
 
 
-    /*
+    if (
+      todaySalesElement
+    ) {
+
+      todaySalesElement.textContent =
+        dashboardCurrency(
+          todaySales
+        );
+
+    }
+
+
+    if (
+      itemsSoldElement
+    ) {
+
+      itemsSoldElement.textContent =
+        itemsSold.toLocaleString(
+          "en-PH"
+        );
+
+    }
+
+
+    if (
+      inventoryItemsElement
+    ) {
+
+      inventoryItemsElement.textContent =
+        inventory.length.toLocaleString(
+          "en-PH"
+        );
+
+    }
+
+
+    if (
+      menuItemsElement
+    ) {
+
+      menuItemsElement.textContent =
+        menu.length.toLocaleString(
+          "en-PH"
+        );
+
+    }
+
+
+    /**
      * ------------------------------------------------------
      * SYSTEM STATUS
      * ------------------------------------------------------
@@ -322,8 +367,14 @@ async function loadDashboard() {
     }
 
 
+    /**
+     * ------------------------------------------------------
+     * DEBUG INFORMATION
+     * ------------------------------------------------------
+     */
+
     console.log(
-      "Dashboard loaded successfully."
+      "HAKI Dashboard loaded successfully."
     );
 
     console.log(
@@ -353,19 +404,14 @@ async function loadDashboard() {
 
   }
 
+
   catch (error) {
 
     console.error(
-      "Dashboard error:",
+      "HAKI Dashboard Error:",
       error
     );
 
-
-    /*
-     * ------------------------------------------------------
-     * SHOW ERROR
-     * ------------------------------------------------------
-     */
 
     if (
       systemMessage
@@ -396,3 +442,4 @@ document.addEventListener(
 
   }
 );
+
