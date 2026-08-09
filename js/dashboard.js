@@ -145,9 +145,9 @@ async function loadDashboard() {
      */
 
     const menuResult =
-      await apiRequest(
-        "menuCosting"
-      );
+  await apiRequest(
+    "menu-costing"
+  );
 
     const menu =
       menuResult.data || [];
