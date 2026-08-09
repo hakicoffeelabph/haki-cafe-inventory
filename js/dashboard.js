@@ -1,29 +1,23 @@
 /**
  * ==========================================================
  * HAKI CAFE SYSTEM
- * DASHBOARD
+ * DASHBOARD MODULE
  * ==========================================================
  *
- * Data sources:
+ * Dashboard reads:
  *
  *   SALES          -> ?action=sales
  *   INVENTORY      -> ?action=inventory
  *   MENU COSTING   -> ?action=menu-costing
  *
- * Business timezone:
- *   Asia/Manila
+ * The Sales API provides `businessDate`.
+ *
+ * The Dashboard uses that value directly.
+ * This keeps the business-date logic centralized in Apps Script
+ * and avoids browser timezone/date conversion problems.
  *
  * ==========================================================
  */
-
-
-/**
- * ==========================================================
- * CONFIGURATION
- * ==========================================================
- */
-
-const DASHBOARD_TIMEZONE = "Asia/Manila";
 
 
 /**
@@ -51,16 +45,24 @@ function formatPHP(value) {
 
 /**
  * ==========================================================
- * GET MANILA BUSINESS DATE
+ * GET TODAY'S BUSINESS DATE
+ * ==========================================================
+ *
+ * Uses Manila timezone.
+ *
+ * This is only used as a fallback.
+ *
+ * Normally the API's businessDate should be used.
+ *
  * ==========================================================
  */
 
-function getBusinessDate() {
+function getTodayBusinessDate() {
 
   return new Intl.DateTimeFormat(
     "en-CA",
     {
-      timeZone: DASHBOARD_TIMEZONE,
+      timeZone: "Asia/Manila",
       year: "numeric",
       month: "2-digit",
       day: "2-digit"
@@ -80,7 +82,7 @@ function getBusinessDate() {
 
 async function loadDashboard() {
 
-  const message =
+  const systemMessage =
     document.getElementById(
       "system-message"
     );
@@ -88,17 +90,17 @@ async function loadDashboard() {
 
   try {
 
-    /*
+    /**
      * ------------------------------------------------------
-     * BUSINESS DATE
+     * GET TODAY'S BUSINESS DATE
      * ------------------------------------------------------
      */
 
     const today =
-      getBusinessDate();
+      getTodayBusinessDate();
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * SALES
      * ------------------------------------------------------
@@ -118,7 +120,7 @@ async function loadDashboard() {
         : [];
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * INVENTORY
      * ------------------------------------------------------
@@ -138,7 +140,7 @@ async function loadDashboard() {
         : [];
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * MENU COSTING
      * ------------------------------------------------------
@@ -158,9 +160,23 @@ async function loadDashboard() {
         : [];
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * FILTER TODAY'S SALES
+     * TODAY'S SALES
+     * ------------------------------------------------------
+     *
+     * IMPORTANT:
+     *
+     * The Sales API already provides:
+     *
+     *   businessDate
+     *
+     * Example:
+     *
+     *   businessDate: "2026-08-09"
+     *
+     * We use that first.
+     *
      * ------------------------------------------------------
      */
 
@@ -169,8 +185,9 @@ async function loadDashboard() {
         sale => {
 
           /*
-           * Preferred:
-           * API already provides businessDate.
+           * PRIMARY METHOD
+           *
+           * Trust the API business date.
            */
 
           if (
@@ -178,7 +195,9 @@ async function loadDashboard() {
           ) {
 
             return (
-              sale.businessDate ===
+              String(
+                sale.businessDate
+              ).trim() ===
               today
             );
 
@@ -186,20 +205,22 @@ async function loadDashboard() {
 
 
           /*
-           * Fallback:
-           * Convert API date to Manila.
+           * FALLBACK
+           *
+           * Only used for older records that don't
+           * contain businessDate.
            */
 
           if (
             sale.date
           ) {
 
-            const convertedDate =
+            const fallbackDate =
               new Intl.DateTimeFormat(
                 "en-CA",
                 {
                   timeZone:
-                    DASHBOARD_TIMEZONE,
+                    "Asia/Manila",
 
                   year:
                     "numeric",
@@ -218,7 +239,7 @@ async function loadDashboard() {
 
 
             return (
-              convertedDate ===
+              fallbackDate ===
               today
             );
 
@@ -231,9 +252,9 @@ async function loadDashboard() {
       );
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * CALCULATE SALES
+     * CALCULATE TODAY'S SALES
      * ------------------------------------------------------
      */
 
@@ -256,7 +277,7 @@ async function loadDashboard() {
       );
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * CALCULATE ITEMS SOLD
      * ------------------------------------------------------
@@ -281,134 +302,90 @@ async function loadDashboard() {
       );
 
 
-    /*
+    /**
      * ------------------------------------------------------
-     * UPDATE TODAY'S SALES
+     * UPDATE SALES
      * ------------------------------------------------------
      */
 
-    const salesElement =
-      document.getElementById(
-        "today-sales"
+    document.getElementById(
+      "today-sales"
+    ).textContent =
+      formatPHP(
+        todaySales
       );
 
 
-    if (
-      salesElement
-    ) {
-
-      salesElement.textContent =
-        formatPHP(
-          todaySales
-        );
-
-    }
-
-
-    /*
+    /**
      * ------------------------------------------------------
      * UPDATE ITEMS SOLD
      * ------------------------------------------------------
      */
 
-    const itemsElement =
-      document.getElementById(
-        "items-sold"
+    document.getElementById(
+      "items-sold"
+    ).textContent =
+      itemsSold.toLocaleString(
+        "en-PH"
       );
 
 
-    if (
-      itemsElement
-    ) {
-
-      itemsElement.textContent =
-        itemsSold.toLocaleString(
-          "en-PH"
-        );
-
-    }
-
-
-    /*
+    /**
      * ------------------------------------------------------
-     * UPDATE INVENTORY COUNT
+     * UPDATE INVENTORY
      * ------------------------------------------------------
      */
 
-    const inventoryElement =
-      document.getElementById(
-        "inventory-items"
+    document.getElementById(
+      "inventory-items"
+    ).textContent =
+      inventory.length.toLocaleString(
+        "en-PH"
       );
 
 
-    if (
-      inventoryElement
-    ) {
-
-      inventoryElement.textContent =
-        inventory.length.toLocaleString(
-          "en-PH"
-        );
-
-    }
-
-
-    /*
+    /**
      * ------------------------------------------------------
-     * UPDATE MENU COUNT
+     * UPDATE MENU
      * ------------------------------------------------------
      */
 
-    const menuElement =
-      document.getElementById(
-        "menu-items"
+    document.getElementById(
+      "menu-items"
+    ).textContent =
+      menu.length.toLocaleString(
+        "en-PH"
       );
 
 
-    if (
-      menuElement
-    ) {
-
-      menuElement.textContent =
-        menu.length.toLocaleString(
-          "en-PH"
-        );
-
-    }
-
-
-    /*
+    /**
      * ------------------------------------------------------
-     * SYSTEM STATUS
+     * CONNECTION STATUS
      * ------------------------------------------------------
      */
 
     if (
-      message
+      systemMessage
     ) {
 
-      message.textContent =
+      systemMessage.textContent =
         "Connected to HAKI Cafe System API.";
 
     }
 
 
-    /*
+    /**
      * ------------------------------------------------------
      * DEBUG
      * ------------------------------------------------------
      */
 
     console.log(
-      "========================================"
+      "HAKI Dashboard loaded."
     );
 
     console.log(
-      "HAKI CAFE DASHBOARD"
-    );
-
-    console.log(
-      "Business Date:",
+      "Dashboard Business Date:",
       today
     );
 
@@ -442,10 +419,6 @@ async function loadDashboard() {
       menu.length
     );
 
-    console.log(
-      "========================================"
-    );
-
   }
 
 
@@ -454,16 +427,16 @@ async function loadDashboard() {
   ) {
 
     console.error(
-      "HAKI Dashboard Error:",
+      "Dashboard Error:",
       error
     );
 
 
     if (
-      message
+      systemMessage
     ) {
 
-      message.textContent =
+      systemMessage.textContent =
         "API Error: " +
         error.message;
 
@@ -482,7 +455,7 @@ async function loadDashboard() {
 
 document.addEventListener(
   "DOMContentLoaded",
-  function () {
+  () => {
 
     loadDashboard();
 
