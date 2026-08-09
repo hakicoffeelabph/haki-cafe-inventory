@@ -164,7 +164,7 @@ async function loadDashboard() {
     // TODAY'S SALES
     // ------------------------------------------------------
 
-    const todaysSales =
+   const todaysSales =
   sales.filter(
     item => {
 
@@ -177,7 +177,6 @@ async function loadDashboard() {
 
     }
   );
-
 
     // ------------------------------------------------------
     // TOTAL SALES
