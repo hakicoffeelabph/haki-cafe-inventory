@@ -1,4 +1,3 @@
-```javascript
 /**
  * ==========================================================
  * HAKI CAFE SYSTEM
@@ -52,4 +51,4 @@ const BUSINESS_CONFIG = {
     "en-PH"
 
 };
-```
+
