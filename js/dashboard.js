@@ -184,12 +184,6 @@ async function loadDashboard() {
   );
 
 
-    console.log(
-      "Today's sales:",
-      todaysSales
-    );
-
-
     // ------------------------------------------------------
     // TOTAL SALES
     // ------------------------------------------------------
