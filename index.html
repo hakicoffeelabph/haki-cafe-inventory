@@ -351,57 +351,46 @@
 
   <!-- API CONNECTION TEST -->
 
-  <script>
+  <script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script>
 
-    const API_URL =
-     https://script.google.com/macros/s/AKfycbzlVNV2cvhCzT_F9fJeKigeOFu3_O47uuXQF7yb5Dk3AndwxbDpwwyu0TCQE0L9QDDk2Q/exec;
+  async function testConnection() {
 
-
-    async function testConnection() {
-
-      const message =
-        document.getElementById(
-          "system-message"
-        );
-
-      try {
-
-        const response =
-          await fetch(
-            API_URL + "?action=health"
-          );
-
-        const data =
-          await response.json();
+    const message =
+      document.getElementById(
+        "system-message"
+      );
 
 
-        if (data.success) {
+    try {
 
-          message.textContent =
-            "Connected to HAKI Cafe System API.";
+      const result =
+        await apiRequest("health");
 
-        } else {
 
-          message.textContent =
-            "API responded, but reported an error.";
-
-        }
-
-      } catch (error) {
+      if (result.success) {
 
         message.textContent =
-          "Unable to connect to the HAKI backend.";
-
-        console.error(error);
+          "Connected to HAKI Cafe System API.";
 
       }
 
+    } catch (error) {
+
+      message.textContent =
+        "Unable to connect to the HAKI backend.";
+
+      console.error(error);
+
     }
 
+  }
 
-    testConnection();
 
-  </script>
+  testConnection();
+
+</script>
 
 </body>
 </html>
