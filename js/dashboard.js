@@ -1,17 +1,22 @@
-```javascript
 /**
  * ==========================================================
  * HAKI CAFE SYSTEM
  * DASHBOARD
  * ==========================================================
  *
- * Business timezone and currency are controlled through
- * BUSINESS_CONFIG in config.js.
+ * Purpose:
+ * Loads and displays live dashboard information from the
+ * HAKI Cafe System Apps Script API.
  *
  * Current HAKI configuration:
  *
- * Timezone: Asia/Manila
+ * Business Timezone: Asia/Manila
  * Currency: PHP
+ *
+ * IMPORTANT:
+ * Sales "businessDate" is calculated by the backend.
+ * The frontend uses that value as the authoritative
+ * business date.
  *
  * ==========================================================
  */
@@ -28,15 +33,23 @@ function formatCurrency(amount) {
   return new Intl.NumberFormat(
     BUSINESS_CONFIG.LOCALE,
     {
-      style: "currency",
+      style:
+        "currency",
+
       currency:
         BUSINESS_CONFIG.CURRENCY,
 
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits:
+        2,
+
+      maximumFractionDigits:
+        2
+
     }
   ).format(
-    Number(amount || 0)
+    Number(
+      amount || 0
+    )
   );
 
 }
@@ -44,11 +57,16 @@ function formatCurrency(amount) {
 
 /**
  * ==========================================================
- * GET BUSINESS DATE
+ * GET TODAY'S BUSINESS DATE
  * ==========================================================
  *
- * Returns today's date according to the cafe's
- * configured business timezone.
+ * Uses the configured HAKI business timezone.
+ *
+ * Current timezone:
+ * Asia/Manila
+ *
+ * Example:
+ * 2026-08-09
  *
  * ==========================================================
  */
@@ -61,63 +79,18 @@ function getBusinessDate() {
       timeZone:
         BUSINESS_CONFIG.BUSINESS_TIMEZONE,
 
-      year: "numeric",
+      year:
+        "numeric",
 
-      month: "2-digit",
+      month:
+        "2-digit",
 
-      day: "2-digit"
+      day:
+        "2-digit"
+
     }
   ).format(
     new Date()
-  );
-
-}
-
-
-/**
- * ==========================================================
- * GET DATE IN BUSINESS TIMEZONE
- * ==========================================================
- */
-
-function getBusinessDateFromValue(dateValue) {
-
-  if (!dateValue) {
-
-    return null;
-
-  }
-
-
-  const date =
-    new Date(dateValue);
-
-
-  if (
-    isNaN(
-      date.getTime()
-    )
-  ) {
-
-    return null;
-
-  }
-
-
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone:
-        BUSINESS_CONFIG.BUSINESS_TIMEZONE,
-
-      year: "numeric",
-
-      month: "2-digit",
-
-      day: "2-digit"
-    }
-  ).format(
-    date
   );
 
 }
@@ -142,6 +115,7 @@ async function loadDashboard() {
         "sales"
       );
 
+
     const sales =
       salesResult.data || [];
 
@@ -154,6 +128,7 @@ async function loadDashboard() {
       await apiRequest(
         "inventory"
       );
+
 
     const inventory =
       inventoryResult.data || [];
@@ -168,12 +143,13 @@ async function loadDashboard() {
         "menu-costing"
       );
 
+
     const menu =
       menuResult.data || [];
 
 
     // ------------------------------------------------------
-    // BUSINESS DATE
+    // GET TODAY'S BUSINESS DATE
     // ------------------------------------------------------
 
     const todayString =
@@ -181,21 +157,19 @@ async function loadDashboard() {
 
 
     // ------------------------------------------------------
-    // TODAY'S SALES
+    // FILTER TODAY'S SALES
+    //
+    // IMPORTANT:
+    // The backend now supplies businessDate.
+    // We do NOT recalculate the raw timestamp here.
     // ------------------------------------------------------
 
     const todaysSales =
       sales.filter(
         item => {
 
-          const saleDate =
-            getBusinessDateFromValue(
-              item.date
-            );
-
-
           return (
-            saleDate ===
+            item.businessDate ===
             todayString
           );
 
@@ -204,7 +178,7 @@ async function loadDashboard() {
 
 
     // ------------------------------------------------------
-    // TOTAL SALES
+    // CALCULATE TODAY'S SALES
     // ------------------------------------------------------
 
     const totalSales =
@@ -227,7 +201,7 @@ async function loadDashboard() {
 
 
     // ------------------------------------------------------
-    // ITEMS SOLD
+    // CALCULATE ITEMS SOLD
     // ------------------------------------------------------
 
     const itemsSold =
@@ -294,7 +268,7 @@ async function loadDashboard() {
 
 
     // ------------------------------------------------------
-    // UPDATE INVENTORY COUNT
+    // UPDATE INVENTORY ITEMS
     // ------------------------------------------------------
 
     const inventoryElement =
@@ -316,7 +290,7 @@ async function loadDashboard() {
 
 
     // ------------------------------------------------------
-    // UPDATE MENU COUNT
+    // UPDATE MENU ITEMS
     // ------------------------------------------------------
 
     const menuElement =
@@ -338,7 +312,7 @@ async function loadDashboard() {
 
 
     // ------------------------------------------------------
-    // SYSTEM STATUS
+    // UPDATE SYSTEM MESSAGE
     // ------------------------------------------------------
 
     const message =
@@ -359,13 +333,19 @@ async function loadDashboard() {
   }
 
 
-  catch (error) {
+  catch (
+    error
+  ) {
 
     console.error(
       "Dashboard loading error:",
       error
     );
 
+
+    // ------------------------------------------------------
+    // DISPLAY ERROR
+    // ------------------------------------------------------
 
     const message =
       document.getElementById(
@@ -385,4 +365,4 @@ async function loadDashboard() {
   }
 
 }
-```
+
