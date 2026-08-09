@@ -1,421 +1,275 @@
-/**
- * ==========================================================
- * HAKI CAFE SYSTEM
- * DASHBOARD MODULE
- * ==========================================================
- *
- * Data sources:
- *
- *   SALES          -> ?action=sales
- *   INVENTORY      -> ?action=inventory
- *   MENU COSTING   -> ?action=menu-costing
- *
- * The Sales API provides the official businessDate.
- *
- * ==========================================================
- */
-
-
-/**
- * ==========================================================
- * FORMAT PHP
- * ==========================================================
- */
-
-function formatPHP(value) {
-
-  return new Intl.NumberFormat(
-    "en-PH",
-    {
-      style: "currency",
-      currency: "PHP",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }
-  ).format(
-    Number(value) || 0
-  );
-
-}
-
-
-/**
- * ==========================================================
- * LOAD DASHBOARD
- * ==========================================================
- */
-
-async function loadDashboard() {
-
-  const systemMessage =
-    document.getElementById(
-      "system-message"
-    );
-
-
-  try {
-
-    /**
-     * ------------------------------------------------------
-     * SALES
-     * ------------------------------------------------------
-     */
-
-    const salesResponse =
-      await apiRequest(
-        "sales"
-      );
-
-
-    const sales =
-      Array.isArray(
-        salesResponse.data
-      )
-        ? salesResponse.data
-        : [];
-
-
-    /**
-     * ------------------------------------------------------
-     * INVENTORY
-     * ------------------------------------------------------
-     */
-
-    const inventoryResponse =
-      await apiRequest(
-        "inventory"
-      );
-
-
-    const inventory =
-      Array.isArray(
-        inventoryResponse.data
-      )
-        ? inventoryResponse.data
-        : [];
-
-
-    /**
-     * ------------------------------------------------------
-     * MENU COSTING
-     * ------------------------------------------------------
-     */
-
-    const menuResponse =
-      await apiRequest(
-        "menu-costing"
-      );
-
-
-    const menu =
-      Array.isArray(
-        menuResponse.data
-      )
-        ? menuResponse.data
-        : [];
-
-
-    /**
-     * ======================================================
-     * BUSINESS DATE
-     * ======================================================
-     *
-     * IMPORTANT:
-     *
-     * We are NOT calculating the date in the browser.
-     *
-     * We use the businessDate supplied by the Sales API.
-     *
-     * This avoids all browser timezone issues.
-     *
-     * ======================================================
-     */
-
-    let businessDate = null;
-
-
-    for (
-      const sale of sales
-    ) {
-
-      if (
-        sale.businessDate
-      ) {
-
-        businessDate =
-          String(
-            sale.businessDate
-          )
-            .trim()
-            .substring(
-              0,
-              10
-            );
-
-        break;
-
-      }
-
-    }
-
-
-    /**
-     * ------------------------------------------------------
-     * FILTER TODAY'S SALES
-     * ------------------------------------------------------
-     */
-
-    const todaysSales =
-      businessDate
-        ? sales.filter(
-            sale => {
-
-              return (
-                String(
-                  sale.businessDate || ""
-                )
-                  .trim()
-                  .substring(
-                    0,
-                    10
-                  ) ===
-                businessDate
-              );
-
-            }
-          )
-        : [];
-
-
-    /**
-     * ------------------------------------------------------
-     * CALCULATE SALES
-     * ------------------------------------------------------
-     */
-
-    const todaySales =
-      todaysSales.reduce(
-        (
-          total,
-          sale
-        ) => {
-
-          return (
-            total +
-            Number(
-              sale.netSales || 0
-            )
-          );
-
-        },
-        0
-      );
-
-
-    /**
-     * ------------------------------------------------------
-     * CALCULATE ITEMS SOLD
-     * ------------------------------------------------------
-     */
+```html
+<!DOCTYPE html>
 
-    const itemsSold =
-      todaysSales.reduce(
-        (
-          total,
-          sale
-        ) => {
-
-          return (
-            total +
-            Number(
-              sale.qtySold || 0
-            )
-          );
+<html lang="en">
 
-        },
-        0
-      );
+<head>
 
+  <meta charset="UTF-8">
 
-    /**
-     * ------------------------------------------------------
-     * UPDATE DASHBOARD
-     * ------------------------------------------------------
-     */
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-    const todaySalesElement =
-      document.getElementById(
-        "today-sales"
-      );
+  <title>
+    HAKI Cafe System
+  </title>
 
 
-    if (
-      todaySalesElement
-    ) {
+  <!-- ======================================================
+       STYLESHEET
+       ====================================================== -->
 
-      todaySalesElement.textContent =
-        formatPHP(
-          todaySales
-        );
+  <link
+    rel="stylesheet"
+    href="css/style.css?v=3"
+  >
 
-    }
-
-
-    const itemsSoldElement =
-      document.getElementById(
-        "items-sold"
-      );
-
+</head>
 
-    if (
-      itemsSoldElement
-    ) {
-
-      itemsSoldElement.textContent =
-        itemsSold.toLocaleString(
-          "en-PH"
-        );
-
-    }
-
 
-    const inventoryElement =
-      document.getElementById(
-        "inventory-items"
-      );
+<body>
 
 
-    if (
-      inventoryElement
-    ) {
+  <!-- ======================================================
+       SIDEBAR
+       ====================================================== -->
 
-      inventoryElement.textContent =
-        inventory.length.toLocaleString(
-          "en-PH"
-        );
+  <aside class="sidebar">
 
-    }
+    <div class="brand">
 
+      ☕ HAKI
 
-    const menuElement =
-      document.getElementById(
-        "menu-items"
-      );
+      <span>
+        CAFE SYSTEM
+      </span>
 
+    </div>
 
-    if (
-      menuElement
-    ) {
 
-      menuElement.textContent =
-        menu.length.toLocaleString(
-          "en-PH"
-        );
+    <div class="nav-title">
+      Operations
+    </div>
 
-    }
 
+    <a
+      href="index.html"
+      class="nav-item active"
+    >
+      Dashboard
+    </a>
 
-    /**
-     * ------------------------------------------------------
-     * SYSTEM STATUS
-     * ------------------------------------------------------
-     */
 
-    if (
-      systemMessage
-    ) {
+    <a
+      href="inventory.html"
+      class="nav-item"
+    >
+      Inventory
+    </a>
 
-      systemMessage.textContent =
-        "Connected to HAKI Cafe System API.";
 
-    }
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Sales
+    </a>
 
 
-    /**
-     * ------------------------------------------------------
-     * DEBUG
-     * ------------------------------------------------------
-     */
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Stock Movement
+    </a>
 
-    console.log(
-      "HAKI Dashboard loaded."
-    );
 
-    console.log(
-      "API Business Date:",
-      businessDate
-    );
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Menu Costing
+    </a>
 
-    console.log(
-      "Sales Records:",
-      sales.length
-    );
 
-    console.log(
-      "Today's Sales Records:",
-      todaysSales.length
-    );
+    <br>
 
-    console.log(
-      "Today's Sales:",
-      todaySales
-    );
 
-    console.log(
-      "Items Sold:",
-      itemsSold
-    );
+    <div class="nav-title">
+      System
+    </div>
 
-    console.log(
-      "Inventory Items:",
-      inventory.length
-    );
 
-    console.log(
-      "Menu Items:",
-      menu.length
-    );
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Settings
+    </a>
 
-  }
+  </aside>
 
 
-  catch (
-    error
-  ) {
 
-    console.error(
-      "Dashboard Error:",
-      error
-    );
+  <!-- ======================================================
+       MAIN CONTENT
+       ====================================================== -->
 
+  <main class="main">
 
-    if (
-      systemMessage
-    ) {
 
-      systemMessage.textContent =
-        "API Error: " +
-        error.message;
+    <!-- ====================================================
+         HEADER
+         ==================================================== -->
 
-    }
+    <div class="header">
 
-  }
+      <div>
 
-}
+        <h1>
+          Dashboard
+        </h1>
 
+      </div>
 
-/**
- * ==========================================================
- * INITIALIZE
- * ==========================================================
- */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
+      <div class="status">
 
-    loadDashboard();
+        <div class="status-dot"></div>
 
-  }
-);
+        <span>
+          System Online
+        </span>
 
+      </div>
+
+    </div>
+
+
+
+    <!-- ====================================================
+         SUMMARY CARDS
+         ==================================================== -->
+
+    <div class="cards">
+
+
+      <!-- TODAY'S SALES -->
+
+      <div class="card">
+
+        <div class="card-label">
+          TODAY'S SALES
+        </div>
+
+        <div
+          class="card-value"
+          id="today-sales"
+        >
+          —
+        </div>
+
+      </div>
+
+
+
+      <!-- ITEMS SOLD -->
+
+      <div class="card">
+
+        <div class="card-label">
+          ITEMS SOLD
+        </div>
+
+        <div
+          class="card-value"
+          id="items-sold"
+        >
+          —
+        </div>
+
+      </div>
+
+
+
+      <!-- INVENTORY ITEMS -->
+
+      <div class="card">
+
+        <div class="card-label">
+          INVENTORY ITEMS
+        </div>
+
+        <div
+          class="card-value"
+          id="inventory-items"
+        >
+          —
+        </div>
+
+      </div>
+
+
+
+      <!-- MENU ITEMS -->
+
+      <div class="card">
+
+        <div class="card-label">
+          MENU ITEMS
+        </div>
+
+        <div
+          class="card-value"
+          id="menu-items"
+        >
+          —
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ====================================================
+         SYSTEM MESSAGE
+         ==================================================== -->
+
+    <div class="section">
+
+      <div class="section-title">
+        HAKI Cafe System
+      </div>
+
+
+      <div id="system-message">
+
+        Connecting to the HAKI Cafe System API...
+
+      </div>
+
+    </div>
+
+
+  </main>
+
+
+
+  <!-- ======================================================
+       JAVASCRIPT
+       ====================================================== -->
+
+  <script src="js/config.js"></script>
+
+  <script src="js/api.js"></script>
+
+  <script src="js/dashboard.js?v=7"></script>
+
+
+</body>
+
+</html>
+```
