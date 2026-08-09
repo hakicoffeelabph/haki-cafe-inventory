@@ -1,3 +1,4 @@
+```javascript
 /**
  * ==========================================================
  * HAKI CAFE SYSTEM
@@ -595,3 +596,4 @@ document.addEventListener(
 
   }
 );
+```
