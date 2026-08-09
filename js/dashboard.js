@@ -10,7 +10,7 @@
  *   INVENTORY      -> ?action=inventory
  *   MENU COSTING   -> ?action=menu-costing
  *
- * The Sales API provides the official businessDate.
+ * Business date is supplied by the Sales API.
  *
  * ==========================================================
  */
@@ -18,7 +18,7 @@
 
 /**
  * ==========================================================
- * FORMAT PHP
+ * FORMAT PHP CURRENCY
  * ==========================================================
  */
 
@@ -57,7 +57,7 @@ async function loadDashboard() {
 
     /**
      * ------------------------------------------------------
-     * SALES
+     * LOAD SALES
      * ------------------------------------------------------
      */
 
@@ -77,7 +77,7 @@ async function loadDashboard() {
 
     /**
      * ------------------------------------------------------
-     * INVENTORY
+     * LOAD INVENTORY
      * ------------------------------------------------------
      */
 
@@ -97,7 +97,7 @@ async function loadDashboard() {
 
     /**
      * ------------------------------------------------------
-     * MENU COSTING
+     * LOAD MENU COSTING
      * ------------------------------------------------------
      */
 
@@ -117,68 +117,68 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * BUSINESS DATE
+     * DETERMINE BUSINESS DATE
      * ======================================================
      *
-     * IMPORTANT:
+     * The Sales API already provides:
      *
-     * We are NOT calculating the date in the browser.
+     *   businessDate
      *
-     * We use the businessDate supplied by the Sales API.
+     * Example:
      *
-     * This avoids all browser timezone issues.
+     *   "2026-08-09"
+     *
+     * We use the first valid businessDate returned
+     * by the API.
      *
      * ======================================================
      */
 
-    let businessDate = null;
+    const validSales =
+      sales.filter(
+        sale =>
+          sale &&
+          sale.businessDate
+      );
 
 
-    for (
-      const sale of sales
-    ) {
-
-      if (
-        sale.businessDate
-      ) {
-
-        businessDate =
-          String(
-            sale.businessDate
+    const businessDate =
+      validSales.length
+        ? String(
+            validSales[0].businessDate
           )
             .trim()
             .substring(
               0,
               10
-            );
-
-        break;
-
-      }
-
-    }
+            )
+        : null;
 
 
     /**
-     * ------------------------------------------------------
+     * ======================================================
      * FILTER TODAY'S SALES
-     * ------------------------------------------------------
+     * ======================================================
      */
 
     const todaysSales =
       businessDate
-        ? sales.filter(
+        ? validSales.filter(
             sale => {
 
-              return (
+              const saleBusinessDate =
                 String(
-                  sale.businessDate || ""
+                  sale.businessDate
                 )
                   .trim()
                   .substring(
                     0,
                     10
-                  ) ===
+                  );
+
+
+              return (
+                saleBusinessDate ===
                 businessDate
               );
 
@@ -188,9 +188,9 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
-     * CALCULATE SALES
-     * ------------------------------------------------------
+     * ======================================================
+     * CALCULATE TODAY'S SALES
+     * ======================================================
      */
 
     const todaySales =
@@ -213,9 +213,9 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
+     * ======================================================
      * CALCULATE ITEMS SOLD
-     * ------------------------------------------------------
+     * ======================================================
      */
 
     const itemsSold =
@@ -238,9 +238,9 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
-     * UPDATE DASHBOARD
-     * ------------------------------------------------------
+     * ======================================================
+     * UPDATE TODAY'S SALES
+     * ======================================================
      */
 
     const todaySalesElement =
@@ -261,6 +261,12 @@ async function loadDashboard() {
     }
 
 
+    /**
+     * ======================================================
+     * UPDATE ITEMS SOLD
+     * ======================================================
+     */
+
     const itemsSoldElement =
       document.getElementById(
         "items-sold"
@@ -279,6 +285,12 @@ async function loadDashboard() {
     }
 
 
+    /**
+     * ======================================================
+     * UPDATE INVENTORY ITEMS
+     * ======================================================
+     */
+
     const inventoryElement =
       document.getElementById(
         "inventory-items"
@@ -296,6 +308,12 @@ async function loadDashboard() {
 
     }
 
+
+    /**
+     * ======================================================
+     * UPDATE MENU ITEMS
+     * ======================================================
+     */
 
     const menuElement =
       document.getElementById(
@@ -316,9 +334,9 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
+     * ======================================================
      * SYSTEM STATUS
-     * ------------------------------------------------------
+     * ======================================================
      */
 
     if (
@@ -332,22 +350,22 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
-     * DEBUG
-     * ------------------------------------------------------
+     * ======================================================
+     * DEBUG INFORMATION
+     * ======================================================
      */
 
     console.log(
-      "HAKI Dashboard loaded."
+      "HAKI Cafe Dashboard loaded."
     );
 
     console.log(
-      "API Business Date:",
+      "Business Date:",
       businessDate
     );
 
     console.log(
-      "Sales Records:",
+      "Total Sales Records:",
       sales.length
     );
 
@@ -379,12 +397,18 @@ async function loadDashboard() {
   }
 
 
+  /**
+   * ========================================================
+   * ERROR HANDLING
+   * ========================================================
+   */
+
   catch (
     error
   ) {
 
     console.error(
-      "Dashboard Error:",
+      "HAKI Dashboard Error:",
       error
     );
 
@@ -406,7 +430,7 @@ async function loadDashboard() {
 
 /**
  * ==========================================================
- * INITIALIZE
+ * INITIALIZE DASHBOARD
  * ==========================================================
  */
 
