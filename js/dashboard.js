@@ -59,16 +59,42 @@ function formatPHP(value) {
 
 function getTodayBusinessDate() {
 
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Asia/Manila",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone: "Asia/Manila",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }
+    ).formatToParts(
+      new Date()
+    );
+
+  const values = {};
+
+  parts.forEach(
+    part => {
+
+      if (
+        part.type !== "literal"
+      ) {
+
+        values[part.type] =
+          part.value;
+
+      }
+
     }
-  ).format(
-    new Date()
+  );
+
+  return (
+    values.year +
+    "-" +
+    values.month +
+    "-" +
+    values.day
   );
 
 }
@@ -194,12 +220,17 @@ async function loadDashboard() {
             sale.businessDate
           ) {
 
-            return (
-              String(
-                sale.businessDate
-              ).trim() ===
-              today
-            );
+          const saleBusinessDate =
+  String(
+    sale.businessDate
+  )
+    .trim()
+    .substring(0, 10);
+
+return (
+  saleBusinessDate ===
+  today
+);  
 
           }
 
