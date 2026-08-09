@@ -4,17 +4,13 @@
  * DASHBOARD MODULE
  * ==========================================================
  *
- * Dashboard reads:
+ * Data sources:
  *
  *   SALES          -> ?action=sales
  *   INVENTORY      -> ?action=inventory
  *   MENU COSTING   -> ?action=menu-costing
  *
- * The Sales API provides `businessDate`.
- *
- * The Dashboard uses that value directly.
- * This keeps the business-date logic centralized in Apps Script
- * and avoids browser timezone/date conversion problems.
+ * The Sales API provides the official businessDate.
  *
  * ==========================================================
  */
@@ -45,63 +41,6 @@ function formatPHP(value) {
 
 /**
  * ==========================================================
- * GET TODAY'S BUSINESS DATE
- * ==========================================================
- *
- * Uses Manila timezone.
- *
- * This is only used as a fallback.
- *
- * Normally the API's businessDate should be used.
- *
- * ==========================================================
- */
-
-function getTodayBusinessDate() {
-
-  const parts =
-    new Intl.DateTimeFormat(
-      "en-US",
-      {
-        timeZone: "Asia/Manila",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-      }
-    ).formatToParts(
-      new Date()
-    );
-
-  const values = {};
-
-  parts.forEach(
-    part => {
-
-      if (
-        part.type !== "literal"
-      ) {
-
-        values[part.type] =
-          part.value;
-
-      }
-
-    }
-  );
-
-  return (
-    values.year +
-    "-" +
-    values.month +
-    "-" +
-    values.day
-  );
-
-}
-
-
-/**
- * ==========================================================
  * LOAD DASHBOARD
  * ==========================================================
  */
@@ -115,16 +54,6 @@ async function loadDashboard() {
 
 
   try {
-
-    /**
-     * ------------------------------------------------------
-     * GET TODAY'S BUSINESS DATE
-     * ------------------------------------------------------
-     */
-
-    const today =
-      getTodayBusinessDate();
-
 
     /**
      * ------------------------------------------------------
@@ -187,105 +116,80 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
-     * TODAY'S SALES
-     * ------------------------------------------------------
+     * ======================================================
+     * BUSINESS DATE
+     * ======================================================
      *
      * IMPORTANT:
      *
-     * The Sales API already provides:
+     * We are NOT calculating the date in the browser.
      *
-     *   businessDate
+     * We use the businessDate supplied by the Sales API.
      *
-     * Example:
+     * This avoids all browser timezone issues.
      *
-     *   businessDate: "2026-08-09"
-     *
-     * We use that first.
-     *
-     * ------------------------------------------------------
+     * ======================================================
      */
 
-    const todaysSales =
-      sales.filter(
-        sale => {
+    let businessDate = null;
 
-          /*
-           * PRIMARY METHOD
-           *
-           * Trust the API business date.
-           */
 
-          if (
+    for (
+      const sale of sales
+    ) {
+
+      if (
+        sale.businessDate
+      ) {
+
+        businessDate =
+          String(
             sale.businessDate
-          ) {
-
-          const saleBusinessDate =
-  String(
-    sale.businessDate
-  )
-    .trim()
-    .substring(0, 10);
-
-return (
-  saleBusinessDate ===
-  today
-);  
-
-          }
-
-
-          /*
-           * FALLBACK
-           *
-           * Only used for older records that don't
-           * contain businessDate.
-           */
-
-          if (
-            sale.date
-          ) {
-
-            const fallbackDate =
-              new Intl.DateTimeFormat(
-                "en-CA",
-                {
-                  timeZone:
-                    "Asia/Manila",
-
-                  year:
-                    "numeric",
-
-                  month:
-                    "2-digit",
-
-                  day:
-                    "2-digit"
-                }
-              ).format(
-                new Date(
-                  sale.date
-                )
-              );
-
-
-            return (
-              fallbackDate ===
-              today
+          )
+            .trim()
+            .substring(
+              0,
+              10
             );
 
-          }
+        break;
 
+      }
 
-          return false;
-
-        }
-      );
+    }
 
 
     /**
      * ------------------------------------------------------
-     * CALCULATE TODAY'S SALES
+     * FILTER TODAY'S SALES
+     * ------------------------------------------------------
+     */
+
+    const todaysSales =
+      businessDate
+        ? sales.filter(
+            sale => {
+
+              return (
+                String(
+                  sale.businessDate || ""
+                )
+                  .trim()
+                  .substring(
+                    0,
+                    10
+                  ) ===
+                businessDate
+              );
+
+            }
+          )
+        : [];
+
+
+    /**
+     * ------------------------------------------------------
+     * CALCULATE SALES
      * ------------------------------------------------------
      */
 
@@ -335,63 +239,85 @@ return (
 
     /**
      * ------------------------------------------------------
-     * UPDATE SALES
+     * UPDATE DASHBOARD
      * ------------------------------------------------------
      */
 
-    document.getElementById(
-      "today-sales"
-    ).textContent =
-      formatPHP(
-        todaySales
+    const todaySalesElement =
+      document.getElementById(
+        "today-sales"
       );
+
+
+    if (
+      todaySalesElement
+    ) {
+
+      todaySalesElement.textContent =
+        formatPHP(
+          todaySales
+        );
+
+    }
+
+
+    const itemsSoldElement =
+      document.getElementById(
+        "items-sold"
+      );
+
+
+    if (
+      itemsSoldElement
+    ) {
+
+      itemsSoldElement.textContent =
+        itemsSold.toLocaleString(
+          "en-PH"
+        );
+
+    }
+
+
+    const inventoryElement =
+      document.getElementById(
+        "inventory-items"
+      );
+
+
+    if (
+      inventoryElement
+    ) {
+
+      inventoryElement.textContent =
+        inventory.length.toLocaleString(
+          "en-PH"
+        );
+
+    }
+
+
+    const menuElement =
+      document.getElementById(
+        "menu-items"
+      );
+
+
+    if (
+      menuElement
+    ) {
+
+      menuElement.textContent =
+        menu.length.toLocaleString(
+          "en-PH"
+        );
+
+    }
 
 
     /**
      * ------------------------------------------------------
-     * UPDATE ITEMS SOLD
-     * ------------------------------------------------------
-     */
-
-    document.getElementById(
-      "items-sold"
-    ).textContent =
-      itemsSold.toLocaleString(
-        "en-PH"
-      );
-
-
-    /**
-     * ------------------------------------------------------
-     * UPDATE INVENTORY
-     * ------------------------------------------------------
-     */
-
-    document.getElementById(
-      "inventory-items"
-    ).textContent =
-      inventory.length.toLocaleString(
-        "en-PH"
-      );
-
-
-    /**
-     * ------------------------------------------------------
-     * UPDATE MENU
-     * ------------------------------------------------------
-     */
-
-    document.getElementById(
-      "menu-items"
-    ).textContent =
-      menu.length.toLocaleString(
-        "en-PH"
-      );
-
-
-    /**
-     * ------------------------------------------------------
-     * CONNECTION STATUS
+     * SYSTEM STATUS
      * ------------------------------------------------------
      */
 
@@ -416,8 +342,8 @@ return (
     );
 
     console.log(
-      "Dashboard Business Date:",
-      today
+      "API Business Date:",
+      businessDate
     );
 
     console.log(
