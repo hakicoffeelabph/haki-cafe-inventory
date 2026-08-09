@@ -1,4 +1,5 @@
-console.log("HAKI DASHBOARD JS LOADED");
+alert("HAKI DASHBOARD JS LOADED");
+
 /**
  * ==========================================================
  * HAKI CAFE SYSTEM
