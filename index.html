@@ -382,12 +382,16 @@
 
     } catch (error) {
 
-      message.textContent =
-        "Unable to connect to the HAKI backend.";
+  console.error(
+    "HAKI API ERROR:",
+    error
+  );
 
-      console.error(error);
+  message.textContent =
+    "API Error: " +
+    error.message;
 
-    }
+}
 
   }
 
