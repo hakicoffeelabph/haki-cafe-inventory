@@ -4,13 +4,17 @@
  * DASHBOARD MODULE
  * ==========================================================
  *
- * Data sources:
+ * Reads:
  *
- *   SALES          -> ?action=sales
- *   INVENTORY      -> ?action=inventory
- *   MENU COSTING   -> ?action=menu-costing
+ *   - Sales API
+ *   - Inventory API
+ *   - Menu Costing API
  *
- * Business date is supplied by the Sales API.
+ * Business timezone:
+ *   Asia/Manila
+ *
+ * Currency:
+ *   PHP
  *
  * ==========================================================
  */
@@ -18,11 +22,21 @@
 
 /**
  * ==========================================================
- * FORMAT PHP CURRENCY
+ * CONFIGURATION
  * ==========================================================
  */
 
-function formatPHP(value) {
+const DASHBOARD_TIMEZONE =
+  "Asia/Manila";
+
+
+/**
+ * ==========================================================
+ * FORMAT CURRENCY
+ * ==========================================================
+ */
+
+function dashboardCurrency(value) {
 
   return new Intl.NumberFormat(
     "en-PH",
@@ -33,7 +47,52 @@ function formatPHP(value) {
       maximumFractionDigits: 2
     }
   ).format(
-    Number(value) || 0
+    Number(value || 0)
+  );
+
+}
+
+
+/**
+ * ==========================================================
+ * GET TODAY'S BUSINESS DATE
+ * ==========================================================
+ *
+ * IMPORTANT:
+ *
+ * The Dashboard uses Manila time regardless of the
+ * user's computer/browser timezone.
+ *
+ * Example:
+ *
+ * UAE browser time:
+ *     2026-08-09
+ *
+ * Manila business date:
+ *     2026-08-09
+ *
+ * ==========================================================
+ */
+
+function getDashboardBusinessDate() {
+
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone:
+        DASHBOARD_TIMEZONE,
+
+      year:
+        "numeric",
+
+      month:
+        "2-digit",
+
+      day:
+        "2-digit"
+    }
+  ).format(
+    new Date()
   );
 
 }
@@ -57,22 +116,28 @@ async function loadDashboard() {
 
     /**
      * ------------------------------------------------------
+     * GET TODAY'S BUSINESS DATE
+     * ------------------------------------------------------
+     */
+
+    const today =
+      getDashboardBusinessDate();
+
+
+    /**
+     * ------------------------------------------------------
      * LOAD SALES
      * ------------------------------------------------------
      */
 
-    const salesResponse =
+    const salesResult =
       await apiRequest(
         "sales"
       );
 
 
     const sales =
-      Array.isArray(
-        salesResponse.data
-      )
-        ? salesResponse.data
-        : [];
+      salesResult.data || [];
 
 
     /**
@@ -81,18 +146,14 @@ async function loadDashboard() {
      * ------------------------------------------------------
      */
 
-    const inventoryResponse =
+    const inventoryResult =
       await apiRequest(
         "inventory"
       );
 
 
     const inventory =
-      Array.isArray(
-        inventoryResponse.data
-      )
-        ? inventoryResponse.data
-        : [];
+      inventoryResult.data || [];
 
 
     /**
@@ -101,90 +162,60 @@ async function loadDashboard() {
      * ------------------------------------------------------
      */
 
-    const menuResponse =
+    const menuResult =
       await apiRequest(
         "menu-costing"
       );
 
 
     const menu =
-      Array.isArray(
-        menuResponse.data
-      )
-        ? menuResponse.data
-        : [];
-
-
-    /**
-     * ======================================================
-     * DETERMINE BUSINESS DATE
-     * ======================================================
-     *
-     * The Sales API already provides:
-     *
-     *   businessDate
-     *
-     * Example:
-     *
-     *   "2026-08-09"
-     *
-     * We use the first valid businessDate returned
-     * by the API.
-     *
-     * ======================================================
-     */
-
-    const validSales =
-      sales.filter(
-        sale =>
-          sale &&
-          sale.businessDate
-      );
-
-
-    const businessDate =
-      validSales.length
-        ? String(
-            validSales[0].businessDate
-          )
-            .trim()
-            .substring(
-              0,
-              10
-            )
-        : null;
+      menuResult.data || [];
 
 
     /**
      * ======================================================
      * FILTER TODAY'S SALES
      * ======================================================
+     *
+     * The Sales API provides businessDate.
+     *
+     * Example:
+     *
+     *     businessDate: "2026-08-09"
+     *
+     * The Dashboard compares that directly against
+     * today's Manila business date.
+     *
+     * ======================================================
      */
 
     const todaysSales =
-      businessDate
-        ? validSales.filter(
-            sale => {
+      sales.filter(
+        sale => {
 
-              const saleBusinessDate =
-                String(
-                  sale.businessDate
-                )
-                  .trim()
-                  .substring(
-                    0,
-                    10
-                  );
+          if (
+            sale.businessDate
+          ) {
+
+            return (
+              String(
+                sale.businessDate
+              ).trim() ===
+              today
+            );
+
+          }
 
 
-              return (
-                saleBusinessDate ===
-                businessDate
-              );
+          /*
+           * Older records without businessDate
+           * are ignored.
+           */
 
-            }
-          )
-        : [];
+          return false;
+
+        }
+      );
 
 
     /**
@@ -254,7 +285,7 @@ async function loadDashboard() {
     ) {
 
       todaySalesElement.textContent =
-        formatPHP(
+        dashboardCurrency(
           todaySales
         );
 
@@ -291,17 +322,17 @@ async function loadDashboard() {
      * ======================================================
      */
 
-    const inventoryElement =
+    const inventoryItemsElement =
       document.getElementById(
         "inventory-items"
       );
 
 
     if (
-      inventoryElement
+      inventoryItemsElement
     ) {
 
-      inventoryElement.textContent =
+      inventoryItemsElement.textContent =
         inventory.length.toLocaleString(
           "en-PH"
         );
@@ -315,17 +346,17 @@ async function loadDashboard() {
      * ======================================================
      */
 
-    const menuElement =
+    const menuItemsElement =
       document.getElementById(
         "menu-items"
       );
 
 
     if (
-      menuElement
+      menuItemsElement
     ) {
 
-      menuElement.textContent =
+      menuItemsElement.textContent =
         menu.length.toLocaleString(
           "en-PH"
         );
@@ -356,12 +387,21 @@ async function loadDashboard() {
      */
 
     console.log(
-      "HAKI Cafe Dashboard loaded."
+      "========================================"
+    );
+
+    console.log(
+      "HAKI CAFE SYSTEM DASHBOARD"
+    );
+
+    console.log(
+      "Business Timezone:",
+      DASHBOARD_TIMEZONE
     );
 
     console.log(
       "Business Date:",
-      businessDate
+      today
     );
 
     console.log(
@@ -392,6 +432,10 @@ async function loadDashboard() {
     console.log(
       "Menu Items:",
       menu.length
+    );
+
+    console.log(
+      "========================================"
     );
 
   }
