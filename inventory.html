@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Inventory | HAKI Cafe System</title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      ☕ HAKI
+      <span>CAFE SYSTEM</span>
+    </div>
+
+
+    <div class="nav-title">
+      Operations
+    </div>
+
+
+    <a
+      href="index.html"
+      class="nav-item"
+    >
+      Dashboard
+    </a>
+
+
+    <a
+      href="inventory.html"
+      class="nav-item active"
+    >
+      Inventory
+    </a>
+
+
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Sales
+    </a>
+
+
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Stock Movement
+    </a>
+
+
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Menu Costing
+    </a>
+
+
+    <br>
+
+
+    <div class="nav-title">
+      System
+    </div>
+
+
+    <a
+      href="#"
+      class="nav-item"
+    >
+      Settings
+    </a>
+
+  </aside>
+
+
+
+  <!-- MAIN -->
+
+  <main class="main">
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+      <div>
+
+        <h1>
+          Inventory
+        </h1>
+
+        <p class="page-subtitle">
+          Current inventory position
+        </p>
+
+      </div>
+
+
+      <div class="status">
+
+        <div class="status-dot"></div>
+
+        <span>
+          System Online
+        </span>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- INVENTORY SUMMARY -->
+
+    <div class="cards">
+
+
+      <div class="card">
+
+        <div class="card-label">
+          INVENTORY ITEMS
+        </div>
+
+        <div
+          class="card-value"
+          id="inventory-count"
+        >
+          —
+        </div>
+
+      </div>
+
+
+
+      <div class="card">
+
+        <div class="card-label">
+          OUT OF STOCK
+        </div>
+
+        <div
+          class="card-value"
+          id="out-of-stock"
+        >
+          —
+        </div>
+
+      </div>
+
+
+
+      <div class="card">
+
+        <div class="card-label">
+          COUNT REQUIRED
+        </div>
+
+        <div
+          class="card-value"
+          id="count-required"
+        >
+          —
+        </div>
+
+      </div>
+
+
+
+      <div class="card">
+
+        <div class="card-label">
+          STOCK VALUE
+        </div>
+
+        <div
+          class="card-value"
+          id="stock-value"
+        >
+          —
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- INVENTORY TABLE -->
+
+    <div class="section">
+
+
+      <div class="section-header">
+
+        <div>
+
+          <div class="section-title">
+            Inventory Items
+          </div>
+
+          <div
+            id="inventory-message"
+            class="section-subtitle"
+          >
+            Loading inventory...
+          </div>
+
+        </div>
+
+
+        <div>
+
+          <input
+            type="search"
+            id="inventory-search"
+            class="search-input"
+            placeholder="Search inventory..."
+          >
+
+        </div>
+
+      </div>
+
+
+
+      <div class="table-container">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                ITEM
+              </th>
+
+              <th>
+                DEPARTMENT
+              </th>
+
+              <th>
+                UOM
+              </th>
+
+              <th>
+                EXPECTED
+              </th>
+
+              <th>
+                PHYSICAL
+              </th>
+
+              <th>
+                VARIANCE
+              </th>
+
+              <th>
+                UNIT COST
+              </th>
+
+              <th>
+                STOCK VALUE
+              </th>
+
+              <th>
+                STATUS
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody
+            id="inventory-table-body"
+          >
+
+            <tr>
+
+              <td
+                colspan="9"
+                class="loading"
+              >
+                Loading inventory...
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- SYSTEM MESSAGE -->
+
+    <div class="section">
+
+      <div class="section-title">
+        HAKI Cafe System
+      </div>
+
+      <div id="system-message">
+        Connecting to HAKI Cafe System API...
+      </div>
+
+    </div>
+
+
+  </main>
+
+
+  <!-- JAVASCRIPT -->
+
+  <script src="js/config.js"></script>
+
+  <script src="js/api.js"></script>
+
+  <script src="js/inventory.js?v=1"></script>
+
+
+</body>
+
+</html>
