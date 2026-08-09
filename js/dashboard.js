@@ -165,18 +165,23 @@ async function loadDashboard() {
     // ------------------------------------------------------
 
     const todaysSales =
-      sales.filter(
-        item => {
+  sales.filter(
+    item => {
 
-          return (
-            String(
-              item.businessDate || ""
-            ).trim() ===
-            today
-          );
-
-        }
+      console.log(
+        "SALE BUSINESS DATE:",
+        item.businessDate
       );
+
+      console.log(
+        "DASHBOARD TODAY:",
+        today
+      );
+
+      return true;
+
+    }
+  );
 
 
     console.log(
