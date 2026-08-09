@@ -168,17 +168,12 @@ async function loadDashboard() {
   sales.filter(
     item => {
 
-      console.log(
-        "SALE BUSINESS DATE:",
-        item.businessDate
-      );
-
-      console.log(
-        "DASHBOARD TODAY:",
+      return (
+        String(
+          item.businessDate || ""
+        ).trim() ===
         today
       );
-
-      return true;
 
     }
   );
