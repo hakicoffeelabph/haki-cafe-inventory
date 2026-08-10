@@ -4,13 +4,13 @@
  * DASHBOARD MODULE
  * ==========================================================
  *
- * TEMPORARY SALES VERIFICATION VERSION
+ * Reads:
  *
- * This version intentionally does NOT filter sales by date.
+ *   - Sales API
+ *   - Inventory API
+ *   - Menu Costing API
  *
- * Purpose:
- * Confirm that the Dashboard is receiving the same
- * Sales API data that we tested directly.
+ * Business date is supplied by the backend API.
  *
  * ==========================================================
  */
@@ -56,9 +56,9 @@ async function loadDashboard() {
   try {
 
     /**
-     * ------------------------------------------------------
-     * SALES
-     * ------------------------------------------------------
+     * ======================================================
+     * LOAD SALES
+     * ======================================================
      */
 
     const salesResult =
@@ -76,9 +76,36 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
-     * INVENTORY
-     * ------------------------------------------------------
+     * ======================================================
+     * GET BUSINESS DATE FROM BACKEND
+     * ======================================================
+     *
+     * The API now returns:
+     *
+     *   businessDate: "YYYY-MM-DD"
+     *
+     * This is the official HAKI business date.
+     *
+     * We do NOT calculate the date in the browser.
+     *
+     * ======================================================
+     */
+
+    const businessDate =
+      String(
+        salesResult.businessDate || ""
+      )
+        .trim()
+        .substring(
+          0,
+          10
+        );
+
+
+    /**
+     * ======================================================
+     * LOAD INVENTORY
+     * ======================================================
      */
 
     const inventoryResult =
@@ -96,9 +123,9 @@ async function loadDashboard() {
 
 
     /**
-     * ------------------------------------------------------
-     * MENU COSTING
-     * ------------------------------------------------------
+     * ======================================================
+     * LOAD MENU COSTING
+     * ======================================================
      */
 
     const menuResult =
@@ -117,33 +144,44 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * TEMPORARY TEST
+     * FILTER TODAY'S SALES
      * ======================================================
      *
-     * DO NOT FILTER BY DATE.
+     * IMPORTANT:
      *
-     * Every record returned by the Sales API is included.
-     *
-     * If the API contains:
-     *
-     *   netSales = 63.98
-     *   qtySold  = 1
-     *
-     * the Dashboard should show:
-     *
-     *   ₱63.98
-     *   1
+     * We compare every sale's businessDate against the
+     * businessDate supplied by the backend.
      *
      * ======================================================
      */
 
     const todaysSales =
-      sales;
+      sales.filter(
+        sale => {
+
+          const saleBusinessDate =
+            String(
+              sale.businessDate || ""
+            )
+              .trim()
+              .substring(
+                0,
+                10
+              );
+
+
+          return (
+            saleBusinessDate ===
+            businessDate
+          );
+
+        }
+      );
 
 
     /**
      * ======================================================
-     * CALCULATE SALES
+     * CALCULATE TODAY'S SALES
      * ======================================================
      */
 
@@ -193,7 +231,7 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * UPDATE SALES
+     * UPDATE TODAY'S SALES
      * ======================================================
      */
 
@@ -241,21 +279,21 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * UPDATE INVENTORY
+     * UPDATE INVENTORY ITEMS
      * ======================================================
      */
 
-    const inventoryElement =
+    const inventoryItemsElement =
       document.getElementById(
         "inventory-items"
       );
 
 
     if (
-      inventoryElement
+      inventoryItemsElement
     ) {
 
-      inventoryElement.textContent =
+      inventoryItemsElement.textContent =
         inventory.length.toLocaleString(
           "en-PH"
         );
@@ -265,21 +303,21 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * UPDATE MENU
+     * UPDATE MENU ITEMS
      * ======================================================
      */
 
-    const menuElement =
+    const menuItemsElement =
       document.getElementById(
         "menu-items"
       );
 
 
     if (
-      menuElement
+      menuItemsElement
     ) {
 
-      menuElement.textContent =
+      menuItemsElement.textContent =
         menu.length.toLocaleString(
           "en-PH"
         );
@@ -289,7 +327,7 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * STATUS
+     * SYSTEM STATUS
      * ======================================================
      */
 
@@ -305,50 +343,55 @@ async function loadDashboard() {
 
     /**
      * ======================================================
-     * CONSOLE INFORMATION
+     * DEBUG INFORMATION
      * ======================================================
      */
 
     console.log(
-      "======================================"
+      "=========================================="
     );
 
     console.log(
-      "HAKI CAFE DASHBOARD TEST"
+      "HAKI CAFE SYSTEM DASHBOARD"
     );
 
     console.log(
-      "Sales API records:",
+      "Backend Business Date:",
+      businessDate
+    );
+
+    console.log(
+      "Sales API Records:",
       sales.length
     );
 
     console.log(
-      "Sales API response:",
-      salesResult
+      "Today's Sales Records:",
+      todaysSales.length
     );
 
     console.log(
-      "Calculated sales:",
+      "Today's Sales:",
       todaySales
     );
 
     console.log(
-      "Calculated items:",
+      "Items Sold:",
       itemsSold
     );
 
     console.log(
-      "Inventory:",
+      "Inventory Items:",
       inventory.length
     );
 
     console.log(
-      "Menu:",
+      "Menu Items:",
       menu.length
     );
 
     console.log(
-      "======================================"
+      "=========================================="
     );
 
   }
@@ -356,7 +399,7 @@ async function loadDashboard() {
 
   /**
    * ========================================================
-   * ERROR
+   * ERROR HANDLING
    * ========================================================
    */
 
@@ -365,7 +408,7 @@ async function loadDashboard() {
   ) {
 
     console.error(
-      "Dashboard Error:",
+      "HAKI Dashboard Error:",
       error
     );
 
@@ -387,12 +430,16 @@ async function loadDashboard() {
 
 /**
  * ==========================================================
- * INITIALIZE
+ * INITIALIZE DASHBOARD
  * ==========================================================
  */
 
 document.addEventListener(
   "DOMContentLoaded",
-  loadDashboard
+  () => {
+
+    loadDashboard();
+
+  }
 );
 
